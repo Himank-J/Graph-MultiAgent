@@ -202,6 +202,7 @@ class AgentLoop4:
             if i == 0:
                 agent_input = build_agent_input()
             else:
+                log_step(f"↪️ {agent_type} self-call requested. Running iteration {i + 1} for step {step_id}.")
                 instruction = current_result["output"].get("next_instruction", "Continue the task")
                 previous_output = current_result["output"]
                 iteration_context = current_result["output"].get("iteration_context", {})
