@@ -45,12 +45,58 @@ You must return this JSON:
   "code_variants": {
     "CODE_1A": "<code block>",
     "CODE_1B": "<code block>"
-  }
+  },
+  "call_self": false,
+  "next_instruction": null
 }
 ```
 
 > ⚠️ If variants are unnecessary, return only one variant: `CODE_1A`
 > ⚠️ If multiple strategies exist, return 2–3 diverse variants (A, B, C)
+
+---
+
+## ✅ TWO-STEP EXECUTION (`call_self`)
+For complex tasks where you need to execute code and then process its output, use the `call_self` flag. This allows a two-step execution within a single logical step.
+
+**Sample Use Case:** Fetching data, analyzing it, and then writing final code based on the analysis.
+
+**How it works:**
+1.  **First Run:** Return `call_self: true` along with the initial `code_variants` to execute. Provide a `next_instruction` telling your future self what to do with the execution result.
+2.  **Code Execution:** The system will execute your code.
+3.  **Next Run:** You will be called again. The `inputs` will now contain the results from your code execution. Use this new data to perform the final action, as guided by your `next_instruction`.
+
+### ✅ `call_self` EXAMPLE
+Imagine you need to read a file, analyze its contents, and then write a new file based on the analysis.
+
+**First Run Output:**
+```json
+{
+  "plan_graph": { ... },
+  "next_step_id": "7",
+  "call_self": true,
+  "next_instruction": "Code execution succeeded. The file content is in the `file_content_7A` variable. Now, analyze this content and write the final Python code to generate the report.",
+  "code_variants": {
+    "CODE_7A": "content = read_file('input.txt')\nreturn {'file_content_7A': content}"
+  }
+}
+```
+
+**Second Run Input:**
+Your second run will receive `file_content_7A` in the `inputs`. You would then generate the final code.
+
+**Second Run Output:**
+```json
+{
+  "plan_graph": { ... },
+  "next_step_id": "7",
+  "call_self": false,
+  "next_instruction": null,
+  "code_variants": {
+    "CODE_7A": "report = f'The content has {len(file_content_7A)} characters.'\nwith open('report.txt', 'w') as f:\n    f.write(report)\nreturn {'final_report_7A': 'report.txt'}"
+  }
+}
+```
 
 ---
 
